@@ -9,20 +9,20 @@ const (
 
 const (
 	// Websocket client error messages
-	ConnectionErr = "failed to connect to websocket: %v"
-	ConnectionIsClosedErr = "websocket connection is closed"
-	ClientClosedErr = "websocket client closed"
-	CloseErr = "websocket close error: %v"
-	ReadErr = "websocket read error: %v"
-	WriteErr = "websocket write error: %v"
-	ReconnectionAttemptFailedErr = "reconnection attempt %d failed: %v\n"
-	ReconnectionFailedErr = "failed to reconnect after %d attempts"
+	WSConnectionErr = "failed to connect to websocket: %v"
+	WSConnectionIsClosedErr = "websocket connection is closed"
+	WSClientClosedErr = "websocket client closed"
+	WSCloseErr = "websocket close error: %v"
+	WSReadErr = "websocket read error: %v"
+	WSWriteErr = "websocket write error: %v"
+	WSReconnectionAttemptFailedErr = "reconnection attempt %d failed: %v\n"
+	WSReconnectionFailedErr = "failed to reconnect after %d attempts"
 )
 
 const (
 	// Websocket client info messages
-	ConnectedMsg = "WebSocket connected to the server."
-	DisconnectedMsg = "WebSocket disconnected from the server."
-	ReconnectingMsg = "Reconnecting to the server..."
-	ReconnectionSuccessMsg = "Reconnection successful"
+	WSConnectedMsg = "WebSocket connected to the server."
+	WSDisconnectedMsg = "WebSocket disconnected from the server."
+	WSReconnectingMsg = "Reconnecting to the server..."
+	WSReconnectionSuccessMsg = "Reconnection successful"
 )

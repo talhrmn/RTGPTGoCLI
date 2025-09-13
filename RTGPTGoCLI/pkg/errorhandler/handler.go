@@ -30,15 +30,6 @@ func (h *ErrorHandler) HandleError(appErr AppError) {
 	}
 }
 
-func NewAppError(level string, message string, err error) *AppError {
-	// Create app error
-	return &AppError{
-		Level: level,
-		Message: message,
-		Error: err,
-	}
-}
-
 func (h *ErrorHandler) getErrorString(appErr AppError) string {
 	// Get app error string
 	return appErr.Message + "\n" + appErr.Error.Error()
