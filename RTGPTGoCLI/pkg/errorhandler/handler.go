@@ -14,9 +14,9 @@ func NewErrorHandler(debug bool) *ErrorHandler {
 	}
 }
 
-func (h *ErrorHandler) HandleError(appErr AppError) {
+func (eh *ErrorHandler) HandleError(appErr AppError) {
 	// Handle error
-	errString := h.getErrorString(appErr)
+	errString := eh.getErrorString(appErr)
 	switch appErr.Level {
 	case InfoLevel:
 		logger.Info(errString)
@@ -30,7 +30,7 @@ func (h *ErrorHandler) HandleError(appErr AppError) {
 	}
 }
 
-func (h *ErrorHandler) getErrorString(appErr AppError) string {
+func (eh *ErrorHandler) getErrorString(appErr AppError) string {
 	// Get app error string
 	return appErr.Message + "\n" + appErr.Error.Error()
 }

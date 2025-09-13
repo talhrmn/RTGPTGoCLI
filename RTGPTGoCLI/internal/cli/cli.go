@@ -141,13 +141,22 @@ func (cli *CLI) handleChatInput(ctx context.Context, prompt string) {
 }
 
 func (cli *CLI) handleChatOutput(ctx context.Context) {
-	// Handle chat output
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Warning(fmt.Sprintf(CLIResponsePanicText, r))
-		}
-	}()
+	// Handle chat output while recovering from panics
+	for {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Warning(fmt.Sprintf(CLIResponsePanicText, r))
+					time.Sleep(time.Duration(cli.config.Timeout) * time.Millisecond)
+				}
+			}()
 
+			cli.runChatOutput(ctx) // actual logic
+		}()
+	}
+}
+
+func (cli *CLI) runChatOutput(ctx context.Context) {
 	isFirstDelta := true
 	for {
 		select {
@@ -162,6 +171,7 @@ func (cli *CLI) handleChatOutput(ctx context.Context) {
 
 			if isFirstDelta {
 				cli.streamingChannel <- StreamSignal
+				ui.ClearLine()
 				ui.ShowChatPrefix(CLIChatPrefixText)
 				isFirstDelta = false
 			}

@@ -3,6 +3,7 @@ package openai
 import (
 	"RTGPTGoCLI/RTGPTGoCLI/internal/clients"
 	"RTGPTGoCLI/RTGPTGoCLI/internal/config"
+	"RTGPTGoCLI/RTGPTGoCLI/internal/functions/handler"
 	"RTGPTGoCLI/RTGPTGoCLI/pkg/errorhandler"
 	"sync"
 )
@@ -20,6 +21,7 @@ type OpenAIClient struct {
 	mu     sync.RWMutex
 	cleanUpOnce sync.Once
 
+	functionHandler *handler.FunctionHandler
 	sessionID   string
 	responseID  string
 	isStreaming bool
@@ -44,7 +46,7 @@ type OAISessionConfigMetadata struct {
 }
 
 type OAIConversationPayload struct {
-	// OpenAI conversation payload struct
+	// OpenAI conversation payload
 	Type string `json:"type"`
 	Item OAIConversationItemMetadata `json:"item"`
 }
@@ -80,7 +82,7 @@ type OAIStreamingEvent struct {
 }
 
 type OAISessionCreatedEventPayload struct {
-	// OpenAI session created event payload struct
+	// OpenAI session created event payload
 	Type    string          `json:"type"`
 	Session OAISessionCreatedMetadata `json:"session"`
 }
@@ -91,7 +93,7 @@ type OAISessionCreatedMetadata struct {
 }
 
 type OAIResponseCreatedEventPayload struct {
-	// OpenAI response created event payload struct
+	// OpenAI response created event payload
 	Type     string           `json:"type"`
 	Response OAIResponseCreatedMetadata `json:"response"`
 }
@@ -103,7 +105,7 @@ type OAIResponseCreatedMetadata struct {
 }
 
 type OAIResponseOutPutTextDeltaPayload struct {
-	// OpenAI response output text delta payload struct
+	// OpenAI response output text delta payload
 	Type      string `json:"type"`
 	ItemId    string `json:"item_id"`
 	Delta     string `json:"delta"`
@@ -111,7 +113,7 @@ type OAIResponseOutPutTextDeltaPayload struct {
 }
 
 type OAIResponseFailedEventPayload struct {
-	// OpenAI response failed event payload struct
+	// OpenAI response failed event payload
 	Type     string `json:"type"`
 	Response OAIResponseFailedMetadata `json:"response"`
 }
@@ -128,7 +130,7 @@ type OAIResponseFailedErrorData struct {
 }
 
 type OAIResponseErrorPayload struct {
-	// OpenAI response error payload struct
+	// OpenAI response error payload
 	Type    string      `json:"type"`
 	EventID string      `json:"event_id"`
 	Error   OAIErrorMetadata `json:"error"`
@@ -139,4 +141,36 @@ type OAIErrorMetadata struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Param   string `json:"param,omitempty"`
+}
+
+type OAIFunctionCallDonePayload struct {
+	// Function call done payload
+	Type      string `json:"type"`
+	CallID    string `json:"call_id"`
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
+}
+
+type OAIFunctionCallResultPayload struct {
+	// Function call result payload
+	Type      string `json:"type"`
+	Item      OAIFunctionResultItemMetadata `json:"item"`
+}
+
+type OAIFunctionResultItemMetadata struct {
+	// Function call result item metadata struct
+	Type string `json:"type"`
+	CallID string `json:"call_id"`
+	Output interface{} `json:"output"`
+}
+
+type OAIFunctionResultContinuePayload struct {
+	// Function call result continue payload
+	Type string `json:"type"`
+	Response FunctionContinueResponseMetadata `json:"response"`
+}
+
+type FunctionContinueResponseMetadata struct {
+	// Function call result continue response metadata struct
+	Instructions string `json:"instructions"`
 }

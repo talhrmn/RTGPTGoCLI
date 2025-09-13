@@ -4,6 +4,8 @@ import (
 	"RTGPTGoCLI/RTGPTGoCLI/internal/clients"
 	"RTGPTGoCLI/RTGPTGoCLI/internal/common"
 	"RTGPTGoCLI/RTGPTGoCLI/internal/config"
+	"RTGPTGoCLI/RTGPTGoCLI/internal/functions"
+	"RTGPTGoCLI/RTGPTGoCLI/internal/functions/handler"
 	"RTGPTGoCLI/RTGPTGoCLI/pkg/errorhandler"
 	"RTGPTGoCLI/RTGPTGoCLI/pkg/logger"
 	"context"
@@ -15,12 +17,19 @@ import (
 
 func NewOAIClient(cfg *config.Config, wsc clients.WebClientConnection) *OpenAIClient {
 	// Create new OpenAI client
+
+	functionHandler := handler.NewHandler()
+	if err := functionHandler.LoadFunctions(); err != nil {
+		logger.Warning(fmt.Sprintf(OAILoadFunctionsErr, err))
+	}
+
 	return &OpenAIClient{
 		config:           cfg,
 		wsc:              wsc,
 		mu:               sync.RWMutex{},
 		cleanUpOnce:      sync.Once{},
 
+		functionHandler: functionHandler,
 		sessionID:        "",
 		responseID:       "",
 		isStreaming:      false,
@@ -121,7 +130,8 @@ func (oaic *OpenAIClient) SendMessage(ctx context.Context, message string) *erro
 }
 
 func (oaic *OpenAIClient) GetAvailableFunctions() []string {
-	tools := []interface{}{}
+	// Return available custom functions
+	tools := oaic.functionHandler.GenerateOpenAITools()
 	names := make([]string, len(tools))
 	for i, tool := range tools {
 		names[i] = tool.(map[string]interface{})[OAIFunctionFieldName].(string)
@@ -144,7 +154,7 @@ func (oaic *OpenAIClient) sendToWebSocket(ctx context.Context, payload interface
 
 func (oaic *OpenAIClient) sendSessionConfig(ctx context.Context) *errorhandler.AppError {
 	// Define and send session config
-	tools := []interface{}{}
+	tools := oaic.functionHandler.GenerateOpenAITools()
 	sessionConfigPayload := OAISessionConfigPayload{
 		Type: OAISessionUpdateEventType,
 		Session: OAISessionConfigMetadata{
@@ -218,7 +228,7 @@ func (oaic *OpenAIClient) handleEvent(ctx context.Context, event []byte) {
 		oaic.handleResponseCreated(event)
 	case OAIResponseDeltaEventType:
 		oaic.handleResponseDelta(event)
-	case OAIResponseDeltaDoneEventType, OAIResponseDoneEventType, OAIResponseOutputItemDoneEventType, OAIConversationItemDoneEventType:
+	case OAIResponseDeltaDoneEventType, OAIResponseDoneEventType, OAIResponseOutputItemDoneEventType, OAIConversationItemDoneEventType, OAIFunctionCallDoneEventType:
 		oaic.handleResponseDone(ctx, msgType, event)
 	case OAIResponseFailedEventType, OAIResponseErrorEventType:
 		oaic.handleResponseError(event)
@@ -278,8 +288,65 @@ func (oaic *OpenAIClient) handleResponseDone(ctx context.Context, msgType string
 }
 
 func (oaic *OpenAIClient) handleFunctionCallDone(ctx context.Context, msg []byte) {
-	// handle function call done event
-	return
+	// Handle function call done event
+	var functionCallDone OAIFunctionCallDonePayload
+
+	if err := json.Unmarshal(msg, &functionCallDone); err != nil {
+		oaic.errorChannel <- *common.NewErrJsonUnmarshalAppError(err)
+		return
+	}
+
+	logger.Debug(fmt.Sprintf(OAIExecutingFunctionWithArgsMsg, functionCallDone.Name, functionCallDone.Arguments))
+
+	oaic.messageChannel <- clients.MessageEvent{
+		Type: OAIFunctionCallDeltaEventType,
+		Text: fmt.Sprintf(OAIFunctionCallDeltaMsg, functionCallDone.Name, functionCallDone.Arguments),
+		Done: false,
+	}
+
+	result, appErr := oaic.functionHandler.Execute(ctx, functionCallDone.Name, functionCallDone.Arguments)
+	if appErr != nil {
+		oaic.errorChannel <- *appErr
+		return
+	}
+	
+	resultMap, ok := result.(functions.FunctionResponse)
+	if !ok {
+		oaic.errorChannel <- *errorhandler.NewAppError(errorhandler.WarningLevel, fmt.Sprintf(OAIUnexpectedFunctionResultType, result), nil)
+		return
+	}
+
+	resultToSend := fmt.Sprintf("%v", resultMap.Result)
+	oaic.sendFunctionResult(ctx, functionCallDone, resultToSend)
+}
+
+func (oaic *OpenAIClient) sendFunctionResult(ctx context.Context, functionData OAIFunctionCallDonePayload, result interface{}) {
+	// Send function result to OpenAI
+	functionResultPayload := OAIFunctionCallResultPayload{
+		Type: OAIConversationItemCreateEventType,
+		Item: OAIFunctionResultItemMetadata{
+			Type:   OAIFunctionCallResultText,
+			CallID: functionData.CallID,
+			Output: result,
+		},
+	}
+
+	if appErr := oaic.sendToWebSocket(ctx, functionResultPayload); appErr != nil {
+		oaic.errorChannel <- *appErr
+		return
+	}
+
+	continueFunctionCallPayload := OAIFunctionResultContinuePayload{
+		Type: OAIResponseCreateEventType,
+		Response: FunctionContinueResponseMetadata{
+			Instructions: fmt.Sprintf(OAIFunctionCallInstructions, functionData.Name, functionData.Arguments, result),
+		},
+	}
+
+	if appErr := oaic.sendToWebSocket(ctx, continueFunctionCallPayload); appErr != nil {
+		oaic.errorChannel <- *appErr
+		return
+	}
 }
 
 func (oaic *OpenAIClient) handleResponseError(event []byte) {
