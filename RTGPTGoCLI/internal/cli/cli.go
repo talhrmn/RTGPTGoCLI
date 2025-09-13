@@ -162,6 +162,7 @@ func (cli *CLI) handleChatOutput(ctx context.Context) {
 
 			if isFirstDelta {
 				cli.streamingChannel <- StreamSignal
+				ui.ClearLine()
 				ui.ShowChatPrefix(CLIChatPrefixText)
 				isFirstDelta = false
 			}
