@@ -1,8 +1,8 @@
 package main
 
 import (
+	"RTGPTGoCLI/RTGPTGoCLI/internal/app"
 	"RTGPTGoCLI/RTGPTGoCLI/internal/config"
-	"RTGPTGoCLI/RTGPTGoCLI/pkg/errorhandler"
 	"RTGPTGoCLI/RTGPTGoCLI/pkg/logger"
 	"fmt"
 	"os"
@@ -18,20 +18,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	errorHandler := errorhandler.NewErrorHandler(cfg.Debug)
-
 	logger.SetDebugMode(cfg.Debug)
 	if cfg.Debug {
 		if cfgString, err := cfg.GetConfigInfo(); err != nil {
-			appErr := errorhandler.NewAppError(
-				errorhandler.WarningLevel,
-				fmt.Sprintf(FailedToGetConfigInfoErr, err),
-				err,
-			)
-			errorHandler.HandleError(*appErr)
+			logger.Warning(fmt.Sprintf(FailedToGetConfigInfoErr, err))
 		} else {
 			logger.Debug(cfgString)
 		}
+	}
+
+	application := app.New(cfg)
+	if err := application.Run(); err != nil {
+		logger.Error(fmt.Sprintf(FailedToRunApplicationErr, err))
+		os.Exit(1)
 	}
 
 	logger.Info(CLIExitedSuccessfullyMsg)
