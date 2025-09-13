@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"RTGPTGoCLI/RTGPTGoCLI/internal/clients"
 	"RTGPTGoCLI/RTGPTGoCLI/internal/config"
 	"RTGPTGoCLI/RTGPTGoCLI/pkg/errorhandler"
 	"context"
@@ -9,6 +10,11 @@ import (
 
 	"github.com/gorilla/websocket"
 )
+
+type WebSocketClientInterface interface {
+	// WebSocketClient interface
+	clients.WebClientConnection
+}
 
 type WebSocketClient struct {
 	// Websocket client struct

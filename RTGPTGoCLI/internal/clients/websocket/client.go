@@ -39,7 +39,7 @@ func NewWebSocketClient(cfg *config.Config) *WebSocketClient {
 func (wsc *WebSocketClient) Connect(ctx context.Context) error {
 	// Connect to websocket
 	if err := wsc.connectOrRetry(ctx); err != nil {
-		return fmt.Errorf(ConnectionErr, err)
+		return fmt.Errorf(WSConnectionErr, err)
 	}
 	return nil
 }
@@ -50,7 +50,7 @@ func (wsc *WebSocketClient) Disconnect() error {
     var disconnectErr error
     
     wsc.cleanUpOnce.Do(func() {
-        logger.Debug(DisconnectedMsg)
+        logger.Debug(WSDisconnectedMsg)
         
         if !wsc.IsConnected() {
             return
@@ -71,11 +71,11 @@ func (wsc *WebSocketClient) Disconnect() error {
         if wsc.connection != nil {
 			// Close WebSocket connection
             if err := wsc.connection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
-                disconnectErr = fmt.Errorf(CloseErr, err)
+                disconnectErr = fmt.Errorf(WSCloseErr, err)
             }
 
             if err := wsc.connection.Close(); err != nil {
-                disconnectErr = fmt.Errorf(CloseErr, err)
+                disconnectErr = fmt.Errorf(WSCloseErr, err)
             }
         }
         
@@ -100,7 +100,7 @@ func (wsc *WebSocketClient) GetErrorChannel() <-chan errorhandler.AppError {
 func (wsc *WebSocketClient) SendMessage(ctx context.Context, message []byte) error {
 	// Send message to websocket
 	if !wsc.IsConnected() {
-		return errors.New(ConnectionIsClosedErr)
+		return errors.New(WSConnectionIsClosedErr)
 	}
 
 	select {
@@ -137,7 +137,7 @@ func (wsc *WebSocketClient) connectOrRetry(ctx context.Context) error {
 
 	wsc.connection = connection
 	wsc.setConnected(true)
-	logger.Debug(ConnectedMsg)
+	logger.Debug(WSConnectedMsg)
 
 	go wsc.readRoutine(connectionContext)
 	go wsc.writeRoutine(connectionContext)
@@ -166,11 +166,7 @@ func (wsc *WebSocketClient) readRoutine(ctx context.Context) {
 			return
 		default:
 			if !wsc.IsConnected() {
-				wsc.errorChannel <- errorhandler.AppError{
-					Level: errorhandler.WarningLevel,
-					Message: ClientClosedErr,
-					Error: errors.New(ClientClosedErr),
-				}
+				wsc.errorChannel <- *errorhandler.NewAppError(errorhandler.WarningLevel, WSClientClosedErr, errors.New(WSClientClosedErr))
 				return
 			}
 
@@ -178,11 +174,7 @@ func (wsc *WebSocketClient) readRoutine(ctx context.Context) {
 			if err != nil {
 				wsc.setConnected(false)
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					wsc.errorChannel <- errorhandler.AppError{
-						Level: errorhandler.WarningLevel,
-						Message: ConnectionIsClosedErr,
-						Error: errors.New(ConnectionIsClosedErr),
-					}
+					wsc.errorChannel <- *errorhandler.NewAppError(errorhandler.WarningLevel, WSConnectionIsClosedErr, errors.New(WSConnectionIsClosedErr))
 					return
 				}
 
@@ -219,8 +211,8 @@ func (wsc *WebSocketClient) writeRoutine(ctx context.Context) {
 			if !wsc.IsConnected() {
 				wsc.errorChannel <- errorhandler.AppError{
 					Level: errorhandler.WarningLevel,
-					Message: ClientClosedErr,
-					Error: errors.New(ClientClosedErr),
+					Message: WSClientClosedErr,
+					Error: errors.New(WSClientClosedErr),
 				}
 				continue
 			}
@@ -229,7 +221,7 @@ func (wsc *WebSocketClient) writeRoutine(ctx context.Context) {
 			if err != nil {
 				wsc.errorChannel <- errorhandler.AppError{
 					Level: errorhandler.WarningLevel,
-					Message: WriteErr,
+					Message: WSWriteErr,
 					Error: err,
 				}
 				wsc.setConnected(false)
@@ -244,7 +236,7 @@ func (wsc *WebSocketClient) writeRoutine(ctx context.Context) {
 }
 
 func (wsc *WebSocketClient) handleReconnection(ctx context.Context) {
-	logger.Debug(ReconnectingMsg)
+	logger.Debug(WSReconnectingMsg)
 	wsc.setConnected(false)
 
 	// Add a small delay before starting reconnection attempts
@@ -264,15 +256,11 @@ func (wsc *WebSocketClient) handleReconnection(ctx context.Context) {
 		}
 
 		if err := wsc.connectOrRetry(ctx); err != nil {
-			wsc.errorChannel <- errorhandler.AppError{
-				Level: errorhandler.WarningLevel,
-				Message: fmt.Sprintf(ReconnectionAttemptFailedErr, attempt, err),
-				Error: err,
-			}
+			wsc.errorChannel <- *errorhandler.NewAppError(errorhandler.WarningLevel, fmt.Sprintf(WSReconnectionAttemptFailedErr, attempt, err), err)
 			continue
 		}
 
-		logger.Debug(ReconnectionSuccessMsg)
+		logger.Debug(WSReconnectionSuccessMsg)
 		// Reset reconnection flag for next time
 		wsc.reconnectOnce = sync.Once{}
 		return
@@ -280,11 +268,7 @@ func (wsc *WebSocketClient) handleReconnection(ctx context.Context) {
 
 	// Failed to reconnect after all attempts
 	select {
-	case wsc.errorChannel <- errorhandler.AppError{
-		Level: errorhandler.ErrorLevel,
-		Message: fmt.Sprintf(ReconnectionFailedErr, wsc.config.Retries),
-		Error: fmt.Errorf(ReconnectionFailedErr, wsc.config.Retries),
-	}:
+	case wsc.errorChannel <- *errorhandler.NewAppError(errorhandler.ErrorLevel, fmt.Sprintf(WSReconnectionFailedErr, wsc.config.Retries), fmt.Errorf(WSReconnectionFailedErr, wsc.config.Retries)):
 	default:
 	}
 }
