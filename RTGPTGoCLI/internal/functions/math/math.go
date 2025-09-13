@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func (mtpFn *FunctionMultiply) Execute(ctx context.Context, params functions.FunctionParams) (*functions.FunctionResponse, *errorhandler.AppError) {
+func (mtpFn *FunctionMultiply) Execute(ctx context.Context, params functions.FunctionParams) (interface{}, *errorhandler.AppError) {
 	// Execute custom multiply function
 	logger.Debug(fmt.Sprintf(ExecutingMultiplyWithParams, params))
 	
@@ -22,7 +22,7 @@ func (mtpFn *FunctionMultiply) Execute(ctx context.Context, params functions.Fun
 	}
 
 	result := mtpFn.calculateResult(numbers)
-	return &functions.FunctionResponse{
+	return functions.FunctionResponse{
 		Result: result,
 		Operation: functions.FunctionOperationText,
 		Inputs: numbers,

@@ -49,7 +49,7 @@ const (
 	OAIDisconnectedMsg = "Disconnected from OpenAI"
 	OAISessionCreatedMsg = "Session created"
 	OAIMessageStreamInProgressMsg = "Message stream in progress"
-	OAIFunctionCallDeltaMsg = "\nCalling custom function: %s with args: %s\n"
+	OAIFunctionCallDeltaMsg = "- Calling your custom function: %s with args: %s -\n"
 )
 
 const (

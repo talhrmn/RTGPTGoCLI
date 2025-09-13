@@ -22,7 +22,7 @@ const (
 
 const (
 	// Log messages
-	CLIResponsePanicText = "AI response handler panic: %v\n"
+	CLIResponsePanicText = "Response handler panic: %v\n"
 )
 
 const (

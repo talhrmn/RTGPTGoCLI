@@ -228,7 +228,7 @@ func (oaic *OpenAIClient) handleEvent(ctx context.Context, event []byte) {
 		oaic.handleResponseCreated(event)
 	case OAIResponseDeltaEventType:
 		oaic.handleResponseDelta(event)
-	case OAIResponseDeltaDoneEventType, OAIResponseDoneEventType, OAIResponseOutputItemDoneEventType, OAIConversationItemDoneEventType:
+	case OAIResponseDeltaDoneEventType, OAIResponseDoneEventType, OAIResponseOutputItemDoneEventType, OAIConversationItemDoneEventType, OAIFunctionCallDoneEventType:
 		oaic.handleResponseDone(ctx, msgType, event)
 	case OAIResponseFailedEventType, OAIResponseErrorEventType:
 		oaic.handleResponseError(event)
@@ -281,7 +281,7 @@ func (oaic *OpenAIClient) handleResponseDone(ctx context.Context, msgType string
 	switch msgType {
 	case OAIResponseDeltaDoneEventType:
 		oaic.messageChannel <- clients.MessageEvent{Type: OAIResponseDeltaDoneEventType, Text: "", Done: true}
-	case OAIFunctionCallDoneEventType:		
+	case OAIFunctionCallDoneEventType:
 		oaic.handleFunctionCallDone(ctx, msg)
 	}
 	oaic.setIsStreaming(false)
@@ -321,6 +321,7 @@ func (oaic *OpenAIClient) handleFunctionCallDone(ctx context.Context, msg []byte
 }
 
 func (oaic *OpenAIClient) sendFunctionResult(ctx context.Context, functionData OAIFunctionCallDonePayload, result interface{}) {
+	// Send function result to OpenAI
 	functionResultPayload := OAIFunctionCallResultPayload{
 		Type: OAIConversationItemCreateEventType,
 		Item: OAIFunctionResultItemMetadata{

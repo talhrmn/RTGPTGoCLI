@@ -10,7 +10,7 @@ type FunctionParams map[string]interface{}
 
 type FunctionInterface interface {
 	// Custom function execution
-	Execute(ctx context.Context, params FunctionParams) (*FunctionResponse, *errorhandler.AppError)
+	Execute(ctx context.Context, params FunctionParams) (interface{}, *errorhandler.AppError)
 	GetMetadata() FunctionPayload
 	ConvertToOpenAITool() OpenAIToolsPayload
 }
