@@ -6,8 +6,9 @@ import (
 )
 
 func PrintJSON(data []byte) {
+	// Print JSON data for debugging
 	var message interface{}
 	json.Unmarshal(data, &message)
 	prettyJSON, _ := json.MarshalIndent(message, "", "  ")
-	fmt.Println("Sending message:", string(prettyJSON))
+	fmt.Println("JSON: ", string(prettyJSON))
 }

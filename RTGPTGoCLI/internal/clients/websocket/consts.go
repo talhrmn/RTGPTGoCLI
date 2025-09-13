@@ -20,6 +20,7 @@ const (
 )
 
 const (
+	// Websocket client info messages
 	ConnectedMsg = "WebSocket connected to the server."
 	DisconnectedMsg = "WebSocket disconnected from the server."
 	ReconnectingMsg = "Reconnecting to the server..."

@@ -71,11 +71,11 @@ func (wsc *WebSocketClient) Disconnect() error {
         if wsc.connection != nil {
 			// Close WebSocket connection
             if err := wsc.connection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
-                disconnectErr = err
+                disconnectErr = fmt.Errorf(CloseErr, err)
             }
 
             if err := wsc.connection.Close(); err != nil {
-                disconnectErr = err
+                disconnectErr = fmt.Errorf(CloseErr, err)
             }
         }
         
