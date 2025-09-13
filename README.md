@@ -93,3 +93,8 @@ The error may indicate:
 - Connection issues
 - Malformed responses
 - Network timeouts
+
+## TODO
+
+- Add more functions
+- Add extensive testing
