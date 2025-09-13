@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func LoggerInit() {
+func InitLoggers() {
 	// Initialize loggers
 	infoLogger = log.New(os.Stdout, INFO_PREFIX, log.LstdFlags)
 	debugLogger = log.New(os.Stdout, DEBUG_PREFIX, log.LstdFlags)

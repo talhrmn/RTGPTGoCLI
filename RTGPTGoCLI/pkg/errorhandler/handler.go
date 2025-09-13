@@ -6,7 +6,7 @@ import (
 )
 
 func NewErrorHandler(debug bool) *ErrorHandler {
-	logger.LoggerInit()
+	logger.InitLoggers()
 	logger.SetDebugMode(debug)
 	return &ErrorHandler{
 		debug: debug,
