@@ -6,6 +6,7 @@ import (
 )
 
 func NewErrorHandler(debug bool) *ErrorHandler {
+	// Create error handler
 	logger.InitLoggers()
 	logger.SetDebugMode(debug)
 	return &ErrorHandler{
@@ -14,6 +15,7 @@ func NewErrorHandler(debug bool) *ErrorHandler {
 }
 
 func (h *ErrorHandler) HandleError(appErr AppError) {
+	// Handle error
 	errString := h.getErrorString(appErr)
 	switch appErr.Level {
 	case InfoLevel:
@@ -29,6 +31,7 @@ func (h *ErrorHandler) HandleError(appErr AppError) {
 }
 
 func NewAppError(level string, message string, err error) *AppError {
+	// Create app error
 	return &AppError{
 		Level: level,
 		Message: message,
@@ -37,5 +40,6 @@ func NewAppError(level string, message string, err error) *AppError {
 }
 
 func (h *ErrorHandler) getErrorString(appErr AppError) string {
+	// Get app error string
 	return appErr.Message + "\n" + appErr.Error.Error()
 }
