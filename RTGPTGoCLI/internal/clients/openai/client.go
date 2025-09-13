@@ -120,6 +120,15 @@ func (oaic *OpenAIClient) SendMessage(ctx context.Context, message string) *erro
 	return nil
 }
 
+func (oaic *OpenAIClient) GetAvailableFunctions() []string {
+	tools := []interface{}{}
+	names := make([]string, len(tools))
+	for i, tool := range tools {
+		names[i] = tool.(map[string]interface{})[OAIFunctionFieldName].(string)
+	}
+	return names
+}
+
 func (oaic *OpenAIClient) sendToWebSocket(ctx context.Context, payload interface{}) *errorhandler.AppError {
 	// Send payload to WebSocket
 	payloadBytes, err := json.Marshal(payload)

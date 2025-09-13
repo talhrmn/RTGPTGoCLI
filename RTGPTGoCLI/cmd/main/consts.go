@@ -4,6 +4,7 @@ const (
 	// Error messages
 	FailedToLoadConfigErr = "failed to load configuration: %v"
 	FailedToGetConfigInfoErr = "failed to get configuration info: %v"
+	FailedToRunApplicationErr = "failed to run application: %v"
 )
 
 const (

@@ -21,10 +21,6 @@ const (
 	OAIConversationItemDoneEventType = "conversation.item.done"
 
 	OAIResponseErrorEventType      = "error"
-
-
-
-
 )
 
 const (
@@ -57,6 +53,10 @@ const (
 	OAIResultText = "result"
 	OAIConversationItemRole = "user"
 	OAIConversationItemType = "message"
+	OAIFunctionFieldName = "name"
+)
+const (
+	// OpenAI log messages
 	OAISessionCreatedWithIDMsg = "Session created with ID: %s"
 	OAISessionUpdatedMsg = "Session updated."
 	OAIResponseCreatedWithIDMsg = "Response created with ID: %s"
