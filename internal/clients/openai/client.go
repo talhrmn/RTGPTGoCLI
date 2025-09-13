@@ -298,12 +298,6 @@ func (oaic *OpenAIClient) handleFunctionCallDone(ctx context.Context, msg []byte
 
 	logger.Debug(fmt.Sprintf(OAIExecutingFunctionWithArgsMsg, functionCallDone.Name, functionCallDone.Arguments))
 
-	// oaic.messageChannel <- clients.MessageEvent{
-	// 	Type: OAIFunctionCallDeltaEventType,
-	// 	Text: fmt.Sprintf(OAIFunctionCallDeltaMsg, functionCallDone.Name, functionCallDone.Arguments),
-	// 	Done: false,
-	// }
-
 	result, appErr := oaic.functionHandler.Execute(ctx, functionCallDone.Name, functionCallDone.Arguments)
 	if appErr != nil {
 		oaic.errorChannel <- *appErr
