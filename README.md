@@ -75,9 +75,9 @@ exit, quit, /q          Exit the application
 The application is built with the following key components:
 
 1. **App Layer**: Runs the complete app, wrapping the cli and openai client. Built scalable and extensible to support more clients and connections.
-2. **CLI Layer**: Handles user input as well as all things UI and output formatting.
-3. **OpenAI Client**: Manages communication with OpenAI's API.
-4. **WebSocket Client**: Manages a websocket connection to OpenAI's API via gorilla/websocket.
+2. **CLI Layer**: Handles user input as well as all things UI and output formatting, splinning a goroutine in the background to process handle the chat.
+3. **OpenAI Client**: Manages communication with OpenAI's API, spinning goroutines to process incoming messages and errors in the background.
+4. **WebSocket Client**: Manages a websocket connection to OpenAI's API via gorilla/websocket, spinning goroutines to read and write messages and errors in the background.
 5. **Function Handler**: Manages available functions (e.g., multiplication). Built scalable and extensible to support more functions. You can simply add a new function by implementing the Function interface and adding it to the function handler.
 6. **Configuration**: Handles environment variables and settings.
 7. **Error Handler**: Manages error handling and logging.
