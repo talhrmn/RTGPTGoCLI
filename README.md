@@ -38,7 +38,7 @@ A command-line interface tool that provides real-time interaction with OpenAI's 
    cd cmd/main
    go build -o rtgptcli
    chmod +x rtgptcli
-   ./rtgptcli --api-key your-api-key-here...
+   ./rtgptcli -api-key=your-api-key-here...
    ```
 
 5. In order to exit the application, press Ctrl+C, or follow the exit command in the chat interface.
